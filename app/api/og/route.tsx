@@ -126,6 +126,21 @@ export async function GET(request: NextRequest) {
   const icon = searchParams.get('icon') || '';
   const avatar = searchParams.get('avatar') || '';
 
+  // Validate image URLs - check if they look valid
+  const isValidUrl = (url: string) => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return url.startsWith('http://') || url.startsWith('https://');
+    } catch {
+      return false;
+    }
+  };
+
+  const validIcon = isValidUrl(icon) ? icon : '';
+  const validAvatar = isValidUrl(avatar) ? avatar : '';
+  const validImage = isValidUrl(image) ? image : '';
+
   // Sanitize text inputs
   const title = sanitizeText(rawTitle);
   const site = sanitizeText(rawSite);
@@ -168,9 +183,9 @@ export async function GET(request: NextRequest) {
         }}
       >
         {/* Background layer */}
-        {image ? (
+        {validImage ? (
           <img
-            src={image}
+            src={validImage}
             style={{
               position: 'absolute',
               top: 0,
@@ -236,9 +251,9 @@ export async function GET(request: NextRequest) {
                 gap: '14px',
               }}
             >
-              {icon ? (
+              {validIcon ? (
                 <img
-                  src={icon}
+                  src={validIcon}
                   width={52}
                   height={52}
                   style={{
@@ -357,9 +372,9 @@ export async function GET(request: NextRequest) {
                   gap: '14px',
                 }}
               >
-                {avatar ? (
+                {validAvatar ? (
                   <img
-                    src={avatar}
+                    src={validAvatar}
                     width={48}
                     height={48}
                     style={{
@@ -429,6 +444,7 @@ export async function GET(request: NextRequest) {
                     fontSize: '18px',
                     color: selectedTheme.accentColor,
                     fontWeight: 500,
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   <svg
@@ -444,7 +460,7 @@ export async function GET(request: NextRequest) {
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                   </svg>
-                  {reading}
+                  <span>{reading}</span>
                 </div>
               )}
             </div>
