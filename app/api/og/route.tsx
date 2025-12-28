@@ -142,17 +142,26 @@ export async function GET(request: NextRequest) {
   };
 
   // Check if image format is supported by @vercel/og (WebP is NOT supported)
+  // Ghost uses /format/jpeg/ in path to convert images, so check for that too
   const isSupportedImageFormat = (url: string) => {
     if (!url) return false;
     const lowerUrl = url.toLowerCase();
-    // WebP is not supported by @vercel/og
-    if (lowerUrl.includes('.webp')) return false;
+
+    // Ghost image processing: /format/jpeg/ or /format/png/ in path means it's converted
+    // Even if the original file was .webp, Ghost will serve it as jpeg/png
+    if (lowerUrl.includes('/format/jpeg/') || lowerUrl.includes('/format/png/') || lowerUrl.includes('/format/jpg/')) {
+      return true;
+    }
+
+    // For non-Ghost URLs, check file extension
+    // WebP/AVIF are not supported by @vercel/og
+    if (lowerUrl.match(/\.(webp|avif)(\?|$)/i)) return false;
+
     // Check for supported formats
     const supportedExtensions = ['.png', '.jpg', '.jpeg', '.gif'];
-    // If URL has a clear extension, check it
     const hasExtension = supportedExtensions.some(ext => lowerUrl.includes(ext));
-    // For URLs without clear extensions (like Unsplash), assume they're okay
-    // unless they explicitly have .webp
+
+    // For URLs without clear extensions (like Unsplash with query params), assume okay
     return hasExtension || !lowerUrl.match(/\.(webp|avif|svg|bmp|tiff?)(\?|$)/i);
   };
 
