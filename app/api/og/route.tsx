@@ -191,6 +191,15 @@ export async function GET(request: NextRequest) {
   const validAvatar = isValidUrl(avatar) && isSupportedImageFormat(avatar) ? avatar : '';
   const validImage = isValidUrl(image) && isSupportedImageFormat(image) ? image : '';
 
+  // Debug: Log what we received (check Vercel logs)
+  console.log('OG Debug:', {
+    rawImage: searchParams.get('image'),
+    reconstructedImage: image,
+    validImage,
+    isValidUrl: isValidUrl(image),
+    isSupportedFormat: isSupportedImageFormat(image),
+  });
+
   // Sanitize text inputs
   const title = sanitizeText(rawTitle);
   const site = sanitizeText(rawSite);
