@@ -191,14 +191,23 @@ export async function GET(request: NextRequest) {
   const validAvatar = isValidUrl(avatar) && isSupportedImageFormat(avatar) ? avatar : '';
   const validImage = isValidUrl(image) && isSupportedImageFormat(image) ? image : '';
 
-  // Debug: Log what we received (check Vercel logs)
-  console.log('OG Debug:', {
-    rawImage: searchParams.get('image'),
-    reconstructedImage: image,
-    validImage,
-    isValidUrl: isValidUrl(image),
-    isSupportedFormat: isSupportedImageFormat(image),
-  });
+  // Pre-fetch background image and convert to base64 for more reliable rendering
+  let backgroundImageSrc = '';
+  if (validImage) {
+    try {
+      const imgResponse = await fetch(validImage, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; OGImageBot/1.0)' },
+      });
+      if (imgResponse.ok) {
+        const contentType = imgResponse.headers.get('content-type') || 'image/jpeg';
+        const arrayBuffer = await imgResponse.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        backgroundImageSrc = `data:${contentType};base64,${base64}`;
+      }
+    } catch (e) {
+      console.error('Failed to fetch background image:', e);
+    }
+  }
 
   // Sanitize text inputs
   const title = sanitizeText(rawTitle);
@@ -242,9 +251,9 @@ export async function GET(request: NextRequest) {
         }}
       >
         {/* Background layer */}
-        {validImage ? (
+        {backgroundImageSrc ? (
           <img
-            src={validImage}
+            src={backgroundImageSrc}
             style={{
               position: 'absolute',
               top: 0,
