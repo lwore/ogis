@@ -540,6 +540,9 @@ export async function GET(request: NextRequest) {
       width: 1600,
       height: 840,
       fonts: fonts.length > 0 ? fonts : undefined,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800',
+      },
     }
   );
 }
