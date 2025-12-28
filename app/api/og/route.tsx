@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
-// Theme configurations for overlay styles
+// Theme configurations - lighter overlays to show more of the background image
 const themes: Record<string, {
   overlay: string;
   textColor: string;
@@ -11,53 +11,47 @@ const themes: Record<string, {
   accentColor: string;
   tagBg: string;
 }> = {
-  // Dark overlay - works with most images
   dark: {
-    overlay: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.85) 100%)',
+    overlay: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.75) 100%)',
+    textColor: '#ffffff',
+    subtextColor: 'rgba(255,255,255,0.85)',
+    accentColor: 'rgba(255,255,255,0.7)',
+    tagBg: 'rgba(255,255,255,0.2)',
+  },
+  light: {
+    overlay: 'linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.9) 100%)',
+    textColor: '#1a1a1a',
+    subtextColor: 'rgba(0,0,0,0.75)',
+    accentColor: 'rgba(0,0,0,0.6)',
+    tagBg: 'rgba(0,0,0,0.1)',
+  },
+  sunset: {
+    overlay: 'linear-gradient(135deg, rgba(255,100,50,0.4) 0%, rgba(150,50,150,0.5) 50%, rgba(50,50,100,0.7) 100%)',
+    textColor: '#ffffff',
+    subtextColor: 'rgba(255,255,255,0.9)',
+    accentColor: 'rgba(255,200,150,0.95)',
+    tagBg: 'rgba(255,255,255,0.25)',
+  },
+  ocean: {
+    overlay: 'linear-gradient(135deg, rgba(0,50,100,0.4) 0%, rgba(0,100,150,0.5) 50%, rgba(0,50,80,0.7) 100%)',
+    textColor: '#ffffff',
+    subtextColor: 'rgba(255,255,255,0.9)',
+    accentColor: 'rgba(100,200,255,0.95)',
+    tagBg: 'rgba(255,255,255,0.2)',
+  },
+  aurora: {
+    overlay: 'linear-gradient(135deg, rgba(0,100,100,0.4) 0%, rgba(50,0,100,0.5) 50%, rgba(20,20,60,0.7) 100%)',
+    textColor: '#ffffff',
+    subtextColor: 'rgba(255,255,255,0.9)',
+    accentColor: 'rgba(0,255,200,0.95)',
+    tagBg: 'rgba(255,255,255,0.2)',
+  },
+  minimal: {
+    overlay: 'linear-gradient(to bottom, rgba(20,20,25,0.2) 0%, rgba(20,20,25,0.5) 40%, rgba(20,20,25,0.85) 100%)',
     textColor: '#ffffff',
     subtextColor: 'rgba(255,255,255,0.8)',
     accentColor: 'rgba(255,255,255,0.6)',
     tagBg: 'rgba(255,255,255,0.15)',
-  },
-  // Light overlay - for dark images
-  light: {
-    overlay: 'linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0.95) 100%)',
-    textColor: '#1a1a1a',
-    subtextColor: 'rgba(0,0,0,0.7)',
-    accentColor: 'rgba(0,0,0,0.5)',
-    tagBg: 'rgba(0,0,0,0.08)',
-  },
-  // Gradient overlay - colorful
-  sunset: {
-    overlay: 'linear-gradient(135deg, rgba(255,100,50,0.7) 0%, rgba(150,50,150,0.8) 50%, rgba(50,50,100,0.9) 100%)',
-    textColor: '#ffffff',
-    subtextColor: 'rgba(255,255,255,0.85)',
-    accentColor: 'rgba(255,200,150,0.9)',
-    tagBg: 'rgba(255,255,255,0.2)',
-  },
-  // Ocean blue overlay
-  ocean: {
-    overlay: 'linear-gradient(135deg, rgba(0,50,100,0.7) 0%, rgba(0,100,150,0.8) 50%, rgba(0,50,80,0.9) 100%)',
-    textColor: '#ffffff',
-    subtextColor: 'rgba(255,255,255,0.85)',
-    accentColor: 'rgba(100,200,255,0.9)',
-    tagBg: 'rgba(255,255,255,0.15)',
-  },
-  // Aurora - cyan/purple
-  aurora: {
-    overlay: 'linear-gradient(135deg, rgba(0,100,100,0.7) 0%, rgba(50,0,100,0.8) 50%, rgba(20,20,60,0.9) 100%)',
-    textColor: '#ffffff',
-    subtextColor: 'rgba(255,255,255,0.85)',
-    accentColor: 'rgba(0,255,200,0.9)',
-    tagBg: 'rgba(255,255,255,0.15)',
-  },
-  // Minimal - subtle dark
-  minimal: {
-    overlay: 'linear-gradient(to bottom, rgba(20,20,25,0.5) 0%, rgba(20,20,25,0.8) 50%, rgba(20,20,25,0.95) 100%)',
-    textColor: '#ffffff',
-    subtextColor: 'rgba(255,255,255,0.75)',
-    accentColor: 'rgba(255,255,255,0.5)',
-    tagBg: 'rgba(255,255,255,0.1)',
   },
 };
 
@@ -71,10 +65,11 @@ const defaultBackgrounds: Record<string, string> = {
   minimal: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 50%, #0d0d0d 100%)',
 };
 
-// Load Chinese font
-async function loadFont(): Promise<ArrayBuffer | null> {
+// Load Noto Sans SC with full Unicode support (Regular weight)
+async function loadNotoSansRegular(): Promise<ArrayBuffer | null> {
   try {
-    const fontUrl = 'https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_FnYxNbPzS5HE.woff2';
+    // Use a more complete Noto Sans SC font file
+    const fontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-sc@latest/chinese-simplified-400-normal.woff2';
     const response = await fetch(fontUrl);
     if (!response.ok) return null;
     return await response.arrayBuffer();
@@ -83,36 +78,78 @@ async function loadFont(): Promise<ArrayBuffer | null> {
   }
 }
 
+// Load Noto Sans SC Bold
+async function loadNotoSansBold(): Promise<ArrayBuffer | null> {
+  try {
+    const fontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-sc@latest/chinese-simplified-700-normal.woff2';
+    const response = await fetch(fontUrl);
+    if (!response.ok) return null;
+    return await response.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
+// Sanitize text - replace unsupported characters with safe alternatives
+function sanitizeText(text: string): string {
+  return text
+    // Replace various dashes with standard em-dash
+    .replace(/[⸺⸻—–-]+/g, ' — ')
+    // Replace other problematic Unicode punctuation
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/…/g, '...')
+    .replace(/[\u2000-\u200F\u2028-\u202F]/g, ' ') // Various Unicode spaces
+    .trim();
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
   // Required parameters
-  const title = searchParams.get('title') || 'Untitled';
-  const site = searchParams.get('site') || 'Blog';
+  const rawTitle = searchParams.get('title') || 'Untitled';
+  const rawSite = searchParams.get('site') || 'Blog';
 
   // Optional parameters
-  const excerpt = searchParams.get('excerpt') || '';
+  const rawExcerpt = searchParams.get('excerpt') || '';
   const author = searchParams.get('author') || '';
   const tag = searchParams.get('tag') || '';
   const date = searchParams.get('date') || '';
   const reading = searchParams.get('reading') || '';
   const theme = searchParams.get('theme') || 'dark';
-  const image = searchParams.get('image') || ''; // Background image URL
-  const icon = searchParams.get('icon') || ''; // Site icon URL
+  const image = searchParams.get('image') || '';
+  const icon = searchParams.get('icon') || '';
+  const avatar = searchParams.get('avatar') || '';
+
+  // Sanitize text inputs
+  const title = sanitizeText(rawTitle);
+  const site = sanitizeText(rawSite);
+  const excerpt = sanitizeText(rawExcerpt);
 
   const selectedTheme = themes[theme] || themes.dark;
   const defaultBg = defaultBackgrounds[theme] || defaultBackgrounds.dark;
 
   // Truncate text for display
-  const displayTitle = title.length > 60 ? title.slice(0, 57) + '...' : title;
-  const displayExcerpt = excerpt.length > 120 ? excerpt.slice(0, 117) + '...' : excerpt;
+  const displayTitle = title.length > 50 ? title.slice(0, 47) + '...' : title;
+  const displayExcerpt = excerpt.length > 100 ? excerpt.slice(0, 97) + '...' : excerpt;
 
-  // Load font for Chinese support
-  const fontData = await loadFont();
-  const hasChinese = /[\u4e00-\u9fff]/.test(title + excerpt);
+  // Load fonts
+  const [fontRegular, fontBold] = await Promise.all([
+    loadNotoSansRegular(),
+    loadNotoSansBold(),
+  ]);
 
-  // Calculate font size based on title length
-  const titleFontSize = displayTitle.length > 40 ? 42 : displayTitle.length > 25 ? 52 : 64;
+  // Calculate font size based on title length (scaled for 1600x840)
+  const titleFontSize = displayTitle.length > 35 ? 56 : displayTitle.length > 20 ? 68 : 80;
+
+  // Build fonts array
+  const fonts: { name: string; data: ArrayBuffer; style: 'normal'; weight: number }[] = [];
+  if (fontRegular) {
+    fonts.push({ name: 'Noto Sans SC', data: fontRegular, style: 'normal', weight: 400 });
+  }
+  if (fontBold) {
+    fonts.push({ name: 'Noto Sans SC', data: fontBold, style: 'normal', weight: 700 });
+  }
 
   return new ImageResponse(
     (
@@ -122,25 +159,38 @@ export async function GET(request: NextRequest) {
           height: '100%',
           display: 'flex',
           position: 'relative',
-          fontFamily: hasChinese ? '"Noto Sans SC", sans-serif' : 'system-ui, -apple-system, sans-serif',
+          fontFamily: '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
         }}
       >
-        {/* Background layer - image or gradient */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            backgroundImage: image ? `url(${image})` : defaultBg,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
+        {/* Background layer */}
+        {image ? (
+          <img
+            src={image}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              background: defaultBg,
+            }}
+          />
+        )}
 
-        {/* Overlay gradient for text readability */}
+        {/* Overlay gradient */}
         <div
           style={{
             position: 'absolute',
@@ -161,7 +211,7 @@ export async function GET(request: NextRequest) {
             justifyContent: 'space-between',
             width: '100%',
             height: '100%',
-            padding: '48px 56px',
+            padding: '64px 72px',
             position: 'relative',
           }}
         >
@@ -181,28 +231,28 @@ export async function GET(request: NextRequest) {
                 gap: '14px',
               }}
             >
-              {/* Site icon */}
               {icon ? (
                 <img
                   src={icon}
-                  width={44}
-                  height={44}
+                  width={52}
+                  height={52}
                   style={{
-                    borderRadius: '10px',
+                    borderRadius: '12px',
                     objectFit: 'cover',
+                    border: '2px solid rgba(255,255,255,0.2)',
                   }}
                 />
               ) : (
                 <div
                   style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '10px',
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '12px',
                     background: selectedTheme.tagBg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '22px',
+                    fontSize: '26px',
                     fontWeight: 700,
                     color: selectedTheme.textColor,
                   }}
@@ -212,10 +262,11 @@ export async function GET(request: NextRequest) {
               )}
               <span
                 style={{
-                  fontSize: '24px',
+                  fontSize: '28px',
                   fontWeight: 600,
                   color: selectedTheme.textColor,
                   letterSpacing: '-0.3px',
+                  textShadow: '0 1px 3px rgba(0,0,0,0.3)',
                 }}
               >
                 {site}
@@ -227,12 +278,13 @@ export async function GET(request: NextRequest) {
               <div
                 style={{
                   display: 'flex',
-                  padding: '10px 20px',
-                  borderRadius: '24px',
+                  padding: '12px 24px',
+                  borderRadius: '28px',
                   background: selectedTheme.tagBg,
                   color: selectedTheme.subtextColor,
-                  fontSize: '16px',
+                  fontSize: '18px',
                   fontWeight: 500,
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 {tag}
@@ -245,11 +297,11 @@ export async function GET(request: NextRequest) {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '20px',
+              gap: '18px',
               flex: 1,
               justifyContent: 'center',
-              paddingTop: '20px',
-              paddingBottom: '20px',
+              paddingTop: '16px',
+              paddingBottom: '16px',
             }}
           >
             <h1
@@ -257,10 +309,10 @@ export async function GET(request: NextRequest) {
                 fontSize: `${titleFontSize}px`,
                 fontWeight: 700,
                 color: selectedTheme.textColor,
-                lineHeight: 1.15,
+                lineHeight: 1.2,
                 margin: 0,
-                letterSpacing: '-1px',
-                textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                letterSpacing: '-0.5px',
+                textShadow: '0 2px 8px rgba(0,0,0,0.4)',
               }}
             >
               {displayTitle}
@@ -269,12 +321,13 @@ export async function GET(request: NextRequest) {
             {displayExcerpt && (
               <p
                 style={{
-                  fontSize: '22px',
+                  fontSize: '24px',
                   color: selectedTheme.subtextColor,
-                  lineHeight: 1.5,
+                  lineHeight: 1.6,
                   margin: 0,
-                  maxWidth: '90%',
+                  maxWidth: '85%',
                   fontWeight: 400,
+                  textShadow: '0 1px 4px rgba(0,0,0,0.3)',
                 }}
               >
                 {displayExcerpt}
@@ -296,30 +349,44 @@ export async function GET(request: NextRequest) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
+                  gap: '14px',
                 }}
               >
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: selectedTheme.tagBg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    color: selectedTheme.textColor,
-                  }}
-                >
-                  {author.charAt(0).toUpperCase()}
-                </div>
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    width={48}
+                    height={48}
+                    style={{
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: selectedTheme.tagBg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      fontWeight: 600,
+                      color: selectedTheme.textColor,
+                    }}
+                  >
+                    {author.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <span
                   style={{
-                    fontSize: '18px',
+                    fontSize: '20px',
                     fontWeight: 500,
                     color: selectedTheme.textColor,
+                    textShadow: '0 1px 3px rgba(0,0,0,0.3)',
                   }}
                 >
                   {author}
@@ -339,9 +406,10 @@ export async function GET(request: NextRequest) {
               {date && (
                 <span
                   style={{
-                    fontSize: '16px',
+                    fontSize: '18px',
                     color: selectedTheme.accentColor,
                     fontWeight: 500,
+                    textShadow: '0 1px 3px rgba(0,0,0,0.3)',
                   }}
                 >
                   {date}
@@ -352,15 +420,15 @@ export async function GET(request: NextRequest) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '16px',
+                    gap: '8px',
+                    fontSize: '18px',
                     color: selectedTheme.accentColor,
                     fontWeight: 500,
                   }}
                 >
                   <svg
-                    width="18"
-                    height="18"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -380,18 +448,9 @@ export async function GET(request: NextRequest) {
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
-      fonts: fontData
-        ? [
-            {
-              name: 'Noto Sans SC',
-              data: fontData,
-              style: 'normal',
-              weight: 400,
-            },
-          ]
-        : undefined,
+      width: 1600,
+      height: 840,
+      fonts: fonts.length > 0 ? fonts : undefined,
     }
   );
 }
