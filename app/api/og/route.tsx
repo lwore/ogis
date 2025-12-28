@@ -128,9 +128,10 @@ export async function GET(request: NextRequest) {
 
   // Fix truncated Unsplash URLs - Ghost's encode doesn't encode & in URLs
   // So &cs=tinysrgb becomes a separate parameter instead of part of the image URL
-  // Reconstruct the full Unsplash URL from scattered parameters
-  if (image.includes('images.unsplash.com') && !image.includes('&')) {
-    // Unsplash URLs always have multiple parameters, if we only see the base, it was truncated
+  // Example: image=https://unsplash.com/photo?crop=entropy&cs=tinysrgb&fm=jpg
+  // Gets parsed as: image=https://unsplash.com/photo?crop=entropy, cs=tinysrgb, fm=jpg
+  if (image.includes('images.unsplash.com')) {
+    // Check if URL looks truncated (has ? but likely missing other params)
     const unsplashParams: string[] = [];
     const knownUnsplashParams = ['crop', 'cs', 'fit', 'fm', 'ixid', 'ixlib', 'q', 'w', 'h'];
 
@@ -142,9 +143,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (unsplashParams.length > 0) {
-      // Reconstruct the URL
-      const separator = image.includes('?') ? '&' : '?';
-      image = image + separator + unsplashParams.join('&');
+      // Reconstruct the URL - append missing params
+      image = image + '&' + unsplashParams.join('&');
     }
   }
 
