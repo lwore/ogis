@@ -191,23 +191,31 @@ export async function GET(request: NextRequest) {
   const validAvatar = isValidUrl(avatar) && isSupportedImageFormat(avatar) ? avatar : '';
   const validImage = isValidUrl(image) && isSupportedImageFormat(image) ? image : '';
 
-  // Pre-fetch background image and convert to base64 for more reliable rendering
-  let backgroundImageSrc = '';
-  if (validImage) {
+  // Helper function to fetch image and convert to base64
+  async function fetchImageAsBase64(url: string): Promise<string> {
+    if (!url) return '';
     try {
-      const imgResponse = await fetch(validImage, {
+      const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0 (compatible; OGImageBot/1.0)' },
       });
-      if (imgResponse.ok) {
-        const contentType = imgResponse.headers.get('content-type') || 'image/jpeg';
-        const arrayBuffer = await imgResponse.arrayBuffer();
+      if (response.ok) {
+        const contentType = response.headers.get('content-type') || 'image/jpeg';
+        const arrayBuffer = await response.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
-        backgroundImageSrc = `data:${contentType};base64,${base64}`;
+        return `data:${contentType};base64,${base64}`;
       }
     } catch (e) {
-      console.error('Failed to fetch background image:', e);
+      console.error('Failed to fetch image:', url, e);
     }
+    return '';
   }
+
+  // Pre-fetch all images in parallel and convert to base64 for reliable rendering
+  const [backgroundImageSrc, iconSrc, avatarSrc] = await Promise.all([
+    fetchImageAsBase64(validImage),
+    fetchImageAsBase64(validIcon),
+    fetchImageAsBase64(validAvatar),
+  ]);
 
   // Sanitize text inputs
   const title = sanitizeText(rawTitle);
@@ -319,9 +327,9 @@ export async function GET(request: NextRequest) {
                 gap: '14px',
               }}
             >
-              {validIcon ? (
+              {iconSrc ? (
                 <img
-                  src={validIcon}
+                  src={iconSrc}
                   width={52}
                   height={52}
                   style={{
@@ -440,9 +448,9 @@ export async function GET(request: NextRequest) {
                   gap: '14px',
                 }}
               >
-                {validAvatar ? (
+                {avatarSrc ? (
                   <img
-                    src={validAvatar}
+                    src={avatarSrc}
                     width={48}
                     height={48}
                     style={{
