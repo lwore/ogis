@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 
 export default function Home() {
-  const [title, setTitle] = useState('雨季將不再來');
+  const [title, setTitle] = useState('Interstellar');
   const [site, setSite] = useState('buxx.me');
-  const [excerpt, setExcerpt] = useState('从東京的早樱到南洋的暴雨，2025 见证了一场接一场的重构。');
-  const [author, setAuthor] = useState('Murray');
-  const [date, setDate] = useState('2025-12-31');
+  const [excerpt, setExcerpt] = useState('Do not go gentle into that good night.');
+  const [author, setAuthor] = useState('bunizao');
+  const [date, setDate] = useState('2026-01-05');
   const [image, setImage] = useState('');
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);

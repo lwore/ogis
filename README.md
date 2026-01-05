@@ -1,4 +1,4 @@
-# OG Image Service
+# OGIS - OG Image Service
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
@@ -24,6 +24,8 @@ Dynamic Open Graph (OG) image generation service for blogs and websites. Built w
 ## Deploy to Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/bunizao/og-service)
+
+
 
 ## Local Development
 
@@ -71,13 +73,68 @@ https://og.tutuis.me/api/og?title=Getting%20Started&site=Tech%20Blog&author=Jane
 https://og.tutuis.me/api/og?title=My%20Article&site=Blog&image=https://images.unsplash.com/photo-123456
 ```
 
+## Integration Guide
+
+### Ghost (with Attegi Theme)
+
+If you're using the [Attegi theme](https://github.com/bunizao/attegi) for Ghost, OG image generation is built-in. Simply configure your OG service URL in the theme settings.
+
+### Next.js
+
+For App Router pages (supports dynamic params), use `generateMetadata`:
+
+```tsx
+import type { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = 'Hello World';
+  const siteName = 'My Blog';
+  const ogUrl = `https://your-domain.com/api/og?title=${encodeURIComponent(title)}&site=${encodeURIComponent(siteName)}`;
+
+  return {
+    openGraph: {
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
+    },
+  };
+}
+```
+
+### Astro
+
+Add to your page frontmatter or layout:
+
+```astro
+---
+const ogImage = `https://your-domain.com/api/og?title=${encodeURIComponent(title)}&site=${encodeURIComponent(siteName)}`;
+---
+
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+```
+
+### Hugo
+
+Add to your template:
+
+```html
+{{ $title := .Title }}
+{{ $site := .Site.Title }}
+{{ $ogImage := printf "https://your-domain.com/api/og?title=%s&site=%s" (urlquery $title) (urlquery $site) }}
+
+<meta property="og:image" content="{{ $ogImage }}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+```
+
+### Other Frameworks
+
+For other frameworks and platforms, set `og:image` meta tags to the generated URL (see the [Open Graph protocol](https://ogp.me/)).
+
 ## Design Details
 
-- **Image Size**: 1200×630px (standard OG image dimensions)
-- **Font**: Zpix pixel font (supports Latin + CJK)
-- **Default Background**: High-quality starry sky image (87KB)
-- **Overlay**: Black gradient with 16px backdrop blur
-- **Cache**: 24h CDN cache + 7d stale-while-revalidate
+- **Image Size**: 1200×630px
+- **Font**: Zpix pixel font
 
 ## Technical Stack
 
@@ -91,7 +148,6 @@ https://og.tutuis.me/api/og?title=My%20Article&site=Blog&image=https://images.un
 
 - **Supported Image Formats**: PNG, JPG, JPEG, GIF
 - **Unsupported Formats**: WebP, AVIF, SVG (limitation of @vercel/og)
-- **Font Loading**: Zpix font loaded from jsdelivr CDN
 - **Image Pre-fetching**: All images converted to base64 for reliable rendering
 
 ## Customization
